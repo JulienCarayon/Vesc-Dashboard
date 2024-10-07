@@ -2489,7 +2489,7 @@
     "theme_color2": 0,
     "uiExportFolderPath": "/Users/juliencarayon/Documents/GitHub/Vesc_Dashboard/lib/ui",
     "projectExportFolderPath": "/Users/juliencarayon/Documents/GitHub/Vesc_Dashboard",
-    "backup_cnt": 14,
+    "backup_cnt": 15,
     "autosave_cnt": 0,
     "lvgl_version": "9.1.0",
     "callfuncsexport": "CPP_FILE",
