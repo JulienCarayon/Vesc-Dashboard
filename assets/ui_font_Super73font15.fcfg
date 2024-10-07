@@ -1,0 +1,16 @@
+{
+  "codename": "Super73font15",
+  "ttf_path": "/assets/TTLakesNeueExt-BlackIt.ttf",
+  "bin_path": "/assets/ui_font_Super73font15.bin",
+  "c_path": "/assets/ui_font_Super73font15.c",
+  "cfg_path": "/assets/ui_font_Super73font15.fcfg",
+  "size": 15,
+  "bpp": 1,
+  "letters": 0,
+  "ranges": [
+    "0x20-0x7f"
+  ],
+  "symbols": "",
+  "customparams": "--no-compress --no-prefilter",
+  "uploaded": false
+}
