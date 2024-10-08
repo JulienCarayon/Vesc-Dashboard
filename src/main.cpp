@@ -4,7 +4,8 @@
 #include <TFT_eSPI.h>
 #include <ui.h>
 #include "lv_conf.h"
-
+#include <VescUart.h>
+VescUart UART;
 /*Don't forget to set Sketchbook location in File/Preferences to the path of your UI project (the parent foder of this INO file)*/
 
 /*Change to your screen resolution*/
@@ -78,10 +79,25 @@ void my_touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data)
 /*Set tick routine needed for LVGL internal timings*/
 static uint32_t my_tick_get_cb(void) { return millis(); }
 
+char *floatTOText(float number)
+{
+    static char buffer[10];          // Buffer statique pour conserver la mémoire après la fin de la fonction
+    sprintf(buffer, "%.1f", number); // Limite à 1 décimale
+    return buffer;                   // Le buffer reste valide après la fin de la fonction
+}
+
+char *longTOText(long number)
+{
+    static char buffer[10];         // Utilisation d'un buffer statique suffisamment grand
+    sprintf(buffer, "%ld", number); // Conversion de 'long' en chaîne, avec le format %ld
+    return buffer;
+}
+
 void setup()
 {
     Serial.begin(115200); /* prepare for possible serial debug */
-    Serial1.begin(115200, 134217756U, 4, 5, false, 20000UL, (uint8_t)112U);
+    Serial1.begin(115200, SERIAL_8N1, 27, 22);
+    UART.setSerialPort(&Serial1);
     String LVGL_Arduino = "Hello Arduino! ";
     LVGL_Arduino += String('V') + lv_version_major() + "." + lv_version_minor() + "." + lv_version_patch();
 
@@ -118,23 +134,34 @@ void loop()
 {
     lv_timer_handler(); /* let the GUI do its work */
     delay(5);
-    lv_label_set_text(ui_SpeedValue, "51");
-    lv_label_set_text(ui_CurrentMeterValue, "3");
-    lv_label_set_text(ui_VoltMeterValue, "23");
-}
-
-#include <VescUart.h>
-
-VescUart UART;
-
-void setup()
-{
-    Serial1.begin(115200);
-
-    while (!Serial)
+    // delay(5000);
+    if (UART.getVescValues())
     {
-        ;
-    }
+        const float MS_TO_KMH = 3.6;
+        const float WHEEL_DIAMETER = 0.508;                                                    // Diamètre de la roue en mètres (ajuste cette valeur selon ton matériel)
+        const float GEAR_RATIO = 0.352;                                                        // Rapport d'engrenage (s'il y en a un)
+        const int MOTOR_POLES = 14;                                                            // Nombre de pôles moteurs (ajuste selon ton moteur)
+        const float wheel_circumference = WHEEL_DIAMETER * 3.14159;                            // Circonférence de la roue en mètres
+        float speedMs = (UART.data.rpm / MOTOR_POLES) * wheel_circumference * GEAR_RATIO / 60; // Vitesse en m/s
+        float speedKmh = speedMs * MS_TO_KMH;                                                  // Conversion en km/h
 
-    UART.setSerialPort(&Serial);
+        // float speedMs = (UART.data.rpm) * wheel_circumference) / (60 * GEAR_RATIO); // Conversion RPM en m/s
+        // float speedKmh = speedMs * MS_TO_KMH;
+
+        Serial.println(UART.data.rpm);
+        Serial.println(UART.data.inpVoltage);
+        Serial.println(UART.data.ampHours);
+        // UART.setDebugPort(&Serial);
+        // UART.printVescValues();
+
+        lv_label_set_text(ui_SpeedValue, floatTOText(speedKmh));
+        // lv_label_set_text(ui_SpeedValue, floatTOText(UART.data.rpm));
+
+        lv_label_set_text(ui_CurrentMeterValue, floatTOText(UART.data.avgInputCurrent));
+        lv_label_set_text(ui_VoltMeterValue, floatTOText(UART.data.inpVoltage));
+    }
+    else
+    {
+        Serial.println("Failed to get data!");
+    }
 }
